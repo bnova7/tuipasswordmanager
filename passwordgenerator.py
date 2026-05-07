@@ -8,14 +8,19 @@ def generate_password(length = 16):
 
 def main():
     try:
-        try:
-            password = generate_password()
-            print(password)
-            if input("Enter y to copy password.") == 'y' or 'yes':
-                pyperclip.copy(password)
-            print("password copied.")
-        except ValueError:
-            print("Invalid input.")
+        
+        password = generate_password()
+        print(password)
+        choice = input("Copy password? y/n: ").lower()
+
+        if choice in ["y", "yes"]:
+            pyperclip.copy(password)
+            print("Password copied.")
+
+        else:
+            return
+            
+
     except KeyboardInterrupt:
         print("\nGoodbye.")
 

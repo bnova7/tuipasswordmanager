@@ -106,7 +106,7 @@ def password_manager():
             else:
                 print("Invalid option.")
     except KeyboardInterrupt:
-        print("Goodbye.")
+        print("\nGoodbye.")
         
 
         
