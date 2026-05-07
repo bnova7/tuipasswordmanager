@@ -8,8 +8,9 @@ cd tuipasswordmanager
 pip install -r requirements.txt
 
 # Run the application
-python main.py
-
+python passwordmanager.py
+ - to generate a password:
+python passwordgenerator.py
 
 Usage
 
