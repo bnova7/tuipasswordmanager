@@ -1,23 +1,28 @@
-import random 
+import secrets
 import string 
 import pyperclip
 
+def generate_password(length = 16):
+    password = ''.join([secrets.choice(string.ascii_letters + string.digits + string.punctuation)for n in range(length) ]) 
+    return password
 
-
-
-try:
-    random = ''.join([random.choice(string.ascii_letters + string.digits + string.punctuation)for n in range(16) ]) 
-
+def main():
     try:
-        print(random)
-        if int(input("Enter 1 to copy password.")):
-            pyperclip.copy(random)
+        try:
+            password = generate_password()
+            print(password)
+            if input("Enter y to copy password.") == 'y' or 'yes':
+                pyperclip.copy(password)
+            print("password copied.")
+        except ValueError:
+            print("Invalid input.")
+    except KeyboardInterrupt:
+        print("\nGoodbye.")
 
-    except ValueError:
-        print("Invalid input.")
+if __name__ == "__main__":
+    main()
 
-except KeyboardInterrupt:
-    print("\nGoodbye.")
+
 
 
 

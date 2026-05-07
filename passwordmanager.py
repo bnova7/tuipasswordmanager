@@ -2,6 +2,7 @@ import getpass
 import json
 import os 
 import pyperclip
+import passwordgenerator
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -33,7 +34,8 @@ def password_manager():
             print("1. Add Password")
             print("2. View Entries")
             print("3. Delete Entry")
-            print("4. Exit")
+            print("4. Generate Password")
+            print("5. Exit")
 
             choice = input("> ")
 
@@ -92,10 +94,12 @@ def password_manager():
 
                 else:
                     print("Invalid option.")
-
+            
+            elif choice == "4":
+                passwordgenerator.main()
 
             #exit program
-            elif choice == "4":
+            elif choice == "5":
                 save_vault(master_password,vault,salt)
                 print("Vault saved, Goodbye.")
                 break
