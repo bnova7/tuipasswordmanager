@@ -8,11 +8,9 @@ cd tuipasswordmanager
 pip install -r requirements.txt
 
 # Run the application
-python main.py
-
+python passwordmanager.py
 
 Usage
-[Add basic usage instructions, for example:]
 
 Initialization: Upon the first launch, create your secure store by setting a master password.
 
