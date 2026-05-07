@@ -12,7 +12,6 @@ python main.py
 
 
 Usage
-[Add basic usage instructions, for example:]
 
 Initialization: Upon the first launch, create your secure store by setting a master password.
 
