@@ -1,37 +1,61 @@
-# Clone the repository
-git clone https://github.com/bluenovaeng/tuipasswordmanager.git
+# TUI Password Manager
 
-# Navigate to the directory
-cd tuipasswordmanager
+A simple terminal-based password manager that stores account credentials in a locally encrypted vault.
 
-# Install dependencies
-pip install -r requirements.txt
+## Features
 
-# Run the application
+- AES-GCM encrypted vault file
+- Master password protection
+- Add, view, delete password entries
+- Password generation and clipboard support
+- Minimal dependencies and simple command-line interface
+
+## Installation
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+## Usage
+
+Run the vault manager:
+
+```bash
 python passwordmanager.py
+```
 
-Usage
+Generate a secure password directly:
 
-Initialization: Upon the first launch, create your secure store by setting a master password.
+```bash
+python passwordmanager.py --generate
+```
 
-Login: Securely access your vault with your master password.
+## Vault behavior
 
-Navigation: Use the arrow keys and numeric menus to navigate through your entries.
+- The vault is stored in `vault.json`
+- A new vault is created automatically if the file does not exist
+- Only encrypted data is written to disk
+- Do not commit `vault.json` to source control
 
-Actions:
+## Project structure
 
-1 - List all entries
+- `passwordmanager.py` — main vault application
+- `passwordgenerator.py` — secure password generator
+- `requirements.txt` — runtime dependencies
+- `LICENSE` — project license
 
-2 - Add a new password
+## Recommendations for professionalism
 
-3 - Search/Copy an existing password
+- Add tests for generator and vault functionality
+- Use a package layout and `pyproject.toml` for installation
+- Add `.gitignore` to exclude local secrets and cache files
+- Keep sensitive data out of version control
 
-Security Notice
-This application stores your data locally in an encrypted format. Please ensure that:
+## Security notice
 
-You keep your master password in a safe place.
+This project is intended for learning and should not replace a production password manager.
+Always keep your master password safe and backup your encrypted vault file.
 
-You regularly back up your encrypted data file to prevent loss.
+## License
 
-License
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the `LICENSE` file for details.
