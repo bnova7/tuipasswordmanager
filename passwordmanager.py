@@ -232,34 +232,6 @@ if __name__ == "__main__":
     main()
         
 
-        
-
-
-#first time users get asked for master password
-#write to the vault file 
-#encrypt vault file 
-def create_vault(filename="vault.json"):
-    print("No vault found. Creating new vault.")
-
-    password = getpass.getpass("Create master password: ")
-    confirm = getpass.getpass("Confirm master password: ")
-
-    if password != confirm:
-        print("Passwords don't match.")
-        return None, None
-    
-    vault = {
-        "accounts": []
-    }
-
-    salt = os.urandom(16)
-
-    save_vault(password, vault, salt, filename)
-
-    print("Vault created successfully.")
-
-    return vault, salt
-
     
 
  
