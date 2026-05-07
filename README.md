@@ -36,4 +36,4 @@ You keep your master password in a safe place.
 You regularly back up your encrypted data file to prevent loss.
 
 License
-This project is licensed under the [Choose your license, e.g., MIT] License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the LICENSE file for details.
