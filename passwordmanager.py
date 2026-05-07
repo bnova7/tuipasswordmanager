@@ -279,15 +279,4 @@ def save_vault(master_password: str, vault: dict, salt: bytes, filename="vault.j
     
 
 
-def derive_key(password: str, salt: bytes)-> bytes:
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
-        length=32,
-        salt=salt,
-        iterations=200_000
-    )
-
-    return kdf.derive(password.encode())
-
-print("Key derived successfully ")
 
