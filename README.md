@@ -9,8 +9,6 @@ pip install -r requirements.txt
 
 # Run the application
 python passwordmanager.py
-to generate a password:
-python passwordgenerator.py
 
 Usage
 
