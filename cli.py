@@ -2,10 +2,10 @@
 from getpass import getpass
 import pyperclip
 import passwordgenerator
-from passwordmanager import save_vault, add_entry, list_entries, get_entry, delete_entry
+from vault import VaultService
 
 
-def run_cli(vault: dict, master_password: str, salt: bytes) -> None:
+def run_cli(vault, master_password: str, salt: bytes, vault_service: VaultService) -> None:
     try:
         while True:
             print("\nOptions:")
@@ -22,16 +22,23 @@ def run_cli(vault: dict, master_password: str, salt: bytes) -> None:
                 username = input("Username: ").strip()
                 password = getpass("Password: ")
                 try:
-                    add_entry(vault, site, username, password)
+                    vault.add_entry(site, username, password)
                     print("Entry added.")
                 except ValueError as e:
                     print(e)
             elif choice == "2":
-                list_entries(vault)
-                if vault.get("accounts"):
+                accounts = vault.list_entries()
+                if accounts:
+                    print("\nSaved entries:")
+                    for index, account in enumerate(accounts):
+                        print(f"{index}: {account['site']}")
+                else:
+                    print("No entries found.")
+
+                if accounts:
                     try:
                         index = int(input("Enter index to view: "))
-                        entry = get_entry(vault, index)
+                        entry = vault.get_entry(index)
                         if entry:
                             print("\n--- Entry ---")
                             print(f"Site: {entry['site']}")
@@ -50,22 +57,29 @@ def run_cli(vault: dict, master_password: str, salt: bytes) -> None:
                     except ValueError:
                         print("Invalid input.")
             elif choice == "3":
-                list_entries(vault)
-                if vault.get("accounts"):
+                accounts = vault.list_entries()
+                if accounts:
+                    print("\nSaved entries:")
+                    for index, account in enumerate(accounts):
+                        print(f"{index}: {account['site']}")
+                else:
+                    print("No entries found.")
+
+                if accounts:
                     try:
                         index = int(input("Enter index to delete: "))
-                        removed = delete_entry(vault, index)
+                        removed = vault.delete_entry(index)
                         print(f"Removed entry for {removed['site']}")
                     except (ValueError, IndexError) as e:
                         print(e)
             elif choice == "4":
                 passwordgenerator.main()
             elif choice == "5":
-                save_vault(master_password, vault, salt)
+                vault_service.save_vault(master_password, vault, salt)
                 print("Vault saved. Goodbye.")
                 break
             else:
                 print("Invalid option. Please choose a number from 1 to 5.")
     except KeyboardInterrupt:
-        save_vault(master_password, vault, salt)
+        vault_service.save_vault(master_password, vault, salt)
         print("\nVault saved. Goodbye.")
