@@ -30,6 +30,28 @@ Generate a secure password directly:
 python passwordmanager.py --generate
 ```
 
+## Testing
+
+This project uses `pytest` for automated tests.
+
+Install pytest if needed:
+
+```bash
+python -m pip install pytest
+```
+
+Run the test suite:
+
+```bash
+pytest tests/
+```
+
+If you want more detail, use verbose mode:
+
+```bash
+pytest tests/ -v
+```
+
 ## Vault behavior
 
 - The vault is stored in `vault.json`
