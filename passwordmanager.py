@@ -10,7 +10,7 @@ VAULT_FILE = "vault.json"
 
 def check_password_strength(password: str) -> bool:
     """Basic password strength check."""
-    if len(password) < 8:
+    if len(password) < 16:
         return False
     if not any(c.islower() for c in password):
         return False
@@ -32,7 +32,7 @@ def get_password(prompt: str, validate_strength: bool = False) -> str:
             return get_password(prompt, validate_strength)
 
         if validate_strength and not check_password_strength(password):
-            print("Password is too weak. It must be at least 8 characters long and include uppercase, lowercase, digits, and special characters.")
+            print("Password is too weak. It must be at least 16 characters long and include uppercase, lowercase, digits, and special characters.")
             return get_password(prompt, validate_strength)
 
         return password

@@ -66,13 +66,6 @@ pytest tests/ -v
 - `requirements.txt` — runtime dependencies
 - `LICENSE` — project license
 
-## Recommendations for professionalism
-
-- Add tests for generator and vault functionality
-- Use a package layout and `pyproject.toml` for installation
-- Add `.gitignore` to exclude local secrets and cache files
-- Keep sensitive data out of version control
-
 ## Security notice
 
 This project is intended for learning and should not replace a production password manager.
