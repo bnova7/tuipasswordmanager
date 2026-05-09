@@ -15,9 +15,29 @@ NONCE_SIZE = 12
 KDF_ITERATIONS = 200_000
 
 
+def check_password_strength(password: str) -> bool:
+    """Basic password strength check."""
+    if len(password) < 8:
+        return False
+    if not any(c.islower() for c in password):
+        return False
+    if not any(c.isupper() for c in password):
+        return False
+    if not any(c.isdigit() for c in password):
+        return False
+    if not any(c in "!@#$%^&*()-_=+[]{}|;:,.<>?/" for c in password):
+        return False
+    return True
+
 def get_master_password_confirm() -> str:
     try:
         password = getpass.getpass("Create master password: ")
+
+        is_strong = check_password_strength(password)
+        if not is_strong:
+            print("Password is too weak. It must be at least 8 characters long and include uppercase, lowercase, digits, and special characters.")
+            return get_master_password_confirm()
+        
         confirm_password = getpass.getpass("Confirm master password: ")
 
         if password != confirm_password:
@@ -27,6 +47,7 @@ def get_master_password_confirm() -> str:
         if not password:
             print("Password cannot be empty. Please try again.")
             return get_master_password_confirm()
+    
 
         return password
     except KeyboardInterrupt:
