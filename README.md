@@ -62,7 +62,10 @@ The vault is stored in `vault.json` as a JSON object with three fields:
 - The **nonce** (12 bytes, random per save) and **ciphertext** are produced by AES-GCM encryption of the JSON vault contents.
 - The plaintext is never written to disk. An incorrect password or any modification to the ciphertext will cause decryption to fail with an authentication error.
 
-**Do not commit `vault.json` to source control.** It is listed in `.gitignore` by default.
+> **Do not commit `vault.json` to source control.** It contains your encrypted passwords. The file is already listed in `.gitignore`, but if you ever move or rename it, make sure the new path is ignored too:
+> ```
+> vault.json
+> ```
 
 ## Testing
 
