@@ -23,6 +23,7 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                 password = getpass("Password: ")
                 try:
                     vault.add_entry(site, username, password)
+                    vault_service.save_vault(master_password, vault, salt)
                     print("Entry added.")
                 except ValueError as e:
                     print(e)
@@ -69,6 +70,7 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                     try:
                         index = int(input("Enter index to delete: "))
                         removed = vault.delete_entry(index)
+                        vault_service.save_vault(master_password, vault, salt)
                         print(f"Removed entry for {removed['site']}")
                     except (ValueError, IndexError) as e:
                         print(e)

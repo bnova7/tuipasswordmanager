@@ -24,7 +24,8 @@ def test_cli_add_entry():
         assert entry["username"] == "user@example"
         assert entry["password"] == "secret123"
 
-        vault_service.save_vault.assert_called_once_with(master_password, vault, salt)
+        assert vault_service.save_vault.call_count == 2
+        vault_service.save_vault.assert_called_with(master_password, vault, salt)
 
 
 def test_cli_view_entry():
@@ -71,7 +72,8 @@ def test_cli_delete_entry():
         print_calls = [call.args[0] for call in mock_print.call_args_list]
         assert "Removed entry for site1.com" in print_calls
 
-        vault_service.save_vault.assert_called_once()
+        assert vault_service.save_vault.call_count == 2
+        vault_service.save_vault.assert_called_with(master_password, vault, salt)
 
 
 def test_cli_invalid_choice():

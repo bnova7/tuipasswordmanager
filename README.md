@@ -33,6 +33,36 @@ python passwordmanager.py --generate
 
 On first run, you will be prompted to create a master password. It must be at least 16 characters and include uppercase, lowercase, digits, and a special character.
 
+### Example: creating a vault for the first time
+
+```
+$ python passwordmanager.py
+
+No vault found. Creating a new vault.
+Create master password:
+Confirm master password:
+Vault created successfully.
+
+Options:
+1. Add password
+2. View entries
+3. Delete entry
+4. Generate password
+5. Exit
+> 1
+Site: github.com
+Username: myuser@example.com
+Password:
+Entry added.
+
+Options:
+...
+> 5
+Vault saved. Goodbye.
+```
+
+The password prompt does not echo characters to the terminal. Your vault is saved to `vault.json` in the current directory.
+
 ## Project structure
 
 ```
