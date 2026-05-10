@@ -2,10 +2,10 @@
 from getpass import getpass
 import pyperclip
 import passwordgenerator
-from vault import VaultService
+from vault import Vault, VaultService
 
 
-def run_cli(vault, master_password: str, salt: bytes, vault_service: VaultService) -> None:
+def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: VaultService) -> None:
     try:
         while True:
             print("\nOptions:")
