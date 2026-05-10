@@ -1,14 +1,15 @@
 # TUI Password Manager
 
-A simple terminal-based password manager that stores account credentials in a locally encrypted vault.
+A terminal-based password manager that stores account credentials in a locally encrypted vault file.
 
 ## Features
 
-- AES-GCM encrypted vault file
-- Master password protection
-- Add, view, delete password entries
-- Password generation and clipboard support
-- Minimal dependencies and simple command-line interface
+- AES-GCM encrypted vault with PBKDF2 key derivation (200,000 iterations)
+- Master password protection with strength enforcement
+- Add, view, and delete password entries
+- Secure password generation using Python's `secrets` module
+- Clipboard support for copying passwords
+- Specific error messages for wrong password, missing vault, and corrupt vault
 
 ## Installation
 
@@ -18,58 +19,66 @@ python -m pip install -r requirements.txt
 
 ## Usage
 
-Run the vault manager:
+Run the password manager:
 
 ```bash
 python passwordmanager.py
 ```
 
-Generate a secure password directly:
+Generate a secure password without opening the vault:
 
 ```bash
 python passwordmanager.py --generate
 ```
 
-## Testing
+On first run, you will be prompted to create a master password. It must be at least 16 characters and include uppercase, lowercase, digits, and a special character.
 
-This project uses `pytest` for automated tests.
+## Project structure
 
-Install pytest if needed:
-
-```bash
-python -m pip install pytest
+```
+tuipasswordmanager/
+├── passwordmanager.py   # Entry point — master password handling and orchestration
+├── cli.py               # Interactive menu loop
+├── vault.py             # Encryption (CryptoService), vault data model (Vault), persistence (VaultService)
+├── passwordgenerator.py # Secure password generator
+└── tests/
+    ├── test_logic.py    # Unit tests for crypto, vault, and password generation
+    └── test_cli.py      # Integration tests for the CLI menu
 ```
 
-Run the test suite:
+## Vault format and security
+
+The vault is stored in `vault.json` as a JSON object with three fields:
+
+```json
+{
+  "salt": "<hex>",
+  "nonce": "<hex>",
+  "ciphertext": "<hex>"
+}
+```
+
+- The **salt** (16 bytes, random per vault creation) is passed to PBKDF2-HMAC-SHA256 with 200,000 iterations to derive a 256-bit AES key from the master password.
+- The **nonce** (12 bytes, random per save) and **ciphertext** are produced by AES-GCM encryption of the JSON vault contents.
+- The plaintext is never written to disk. An incorrect password or any modification to the ciphertext will cause decryption to fail with an authentication error.
+
+**Do not commit `vault.json` to source control.** It is listed in `.gitignore` by default.
+
+## Testing
 
 ```bash
 pytest tests/
 ```
 
-If you want more detail, use verbose mode:
+Use `-v` for per-test output:
 
 ```bash
 pytest tests/ -v
 ```
 
-## Vault behavior
-
-- The vault is stored in `vault.json`
-- A new vault is created automatically if the file does not exist
-- Only encrypted data is written to disk
-- Do not commit `vault.json` to source control
-
-## Project structure
-
-- `passwordmanager.py` — main vault application
-- `passwordgenerator.py` — secure password generator
-- `requirements.txt` — runtime dependencies
-- `LICENSE` — project license
-
 ## Security notice
 
-This project is intended for learning and should not replace a production password manager.
-Always keep your master password safe and backup your encrypted vault file.
+This project is intended for learning purposes and should not replace a production password manager. Always keep your master password safe and keep a backup of your encrypted `vault.json`.
 
 ## License
 

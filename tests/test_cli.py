@@ -105,3 +105,34 @@ def test_cli_keyboard_interrupt():
         vault_service.save_vault.assert_called_once_with(master_password, vault, salt)
         print_calls = [call.args[0] for call in mock_print.call_args_list]
         assert "\nVault saved. Goodbye." in print_calls
+
+
+def test_cli_view_entry_copies_to_clipboard():
+    vault = Vault([
+        {"site": "github.com", "username": "testuser", "password": "mypass123"}
+    ])
+    master_password = "test_password"
+    salt = b"test_salt_16_bytes"
+    vault_service = _mock_vault_service()
+
+    with patch('builtins.input', side_effect=["2", "0", "y", "5"]), \
+         patch('cli.pyperclip.copy') as mock_copy, \
+         patch('builtins.print'):
+        cli.run_cli(vault, master_password, salt, vault_service)
+        mock_copy.assert_called_once_with("mypass123")
+
+
+def test_cli_view_entry_clipboard_unavailable():
+    vault = Vault([
+        {"site": "github.com", "username": "testuser", "password": "mypass123"}
+    ])
+    master_password = "test_password"
+    salt = b"test_salt_16_bytes"
+    vault_service = _mock_vault_service()
+
+    with patch('builtins.input', side_effect=["2", "0", "y", "5"]), \
+         patch('cli.pyperclip.copy', side_effect=cli.pyperclip.PyperclipException), \
+         patch('builtins.print') as mock_print:
+        cli.run_cli(vault, master_password, salt, vault_service)
+        print_calls = [call.args[0] for call in mock_print.call_args_list]
+        assert "Clipboard is unavailable on this platform." in print_calls

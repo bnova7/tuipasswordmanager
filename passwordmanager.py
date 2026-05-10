@@ -1,8 +1,9 @@
 import argparse
 import getpass
-import os
+import json
 import passwordgenerator
-from vault import CryptoService, Vault, VaultService
+from cryptography.exceptions import InvalidTag
+from vault import CryptoService, VaultService
 
 
 VAULT_FILE = "vault.json"
@@ -74,8 +75,14 @@ def run_manager() -> None:
         try:
             vault, salt = vault_service.load_vault(master_password)
             print("Vault unlocked.")
-        except Exception:
-            print("Failed to unlock vault. Please verify your password and try again.")
+        except FileNotFoundError:
+            print("Vault file not found. Please check that vault.json exists.")
+            return
+        except InvalidTag:
+            print("Wrong password. Please try again.")
+            return
+        except (json.JSONDecodeError, KeyError, ValueError):
+            print("Vault file is corrupted and cannot be read.")
             return
 
     import cli

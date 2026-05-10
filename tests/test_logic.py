@@ -1,8 +1,11 @@
+import json
 import os
 import pytest
 from unittest.mock import patch
+from cryptography.exceptions import InvalidTag
 
 from vault import CryptoService, Vault, VaultService
+from passwordmanager import check_password_strength
 import passwordgenerator
 
 
@@ -17,6 +20,44 @@ def test_password_generator(mock_choice):
 def test_password_generator_custom_length():
     password = passwordgenerator.generate_password(32)
     assert len(password) == 32
+
+
+def test_copy_to_clipboard_success():
+    with patch('passwordgenerator.pyperclip.copy') as mock_copy:
+        passwordgenerator.copy_to_clipboard("mypassword")
+        mock_copy.assert_called_once_with("mypassword")
+
+
+def test_copy_to_clipboard_unavailable():
+    with patch('passwordgenerator.pyperclip.copy', side_effect=passwordgenerator.pyperclip.PyperclipException), \
+         patch('builtins.print') as mock_print:
+        passwordgenerator.copy_to_clipboard("mypassword")
+        mock_print.assert_called_once_with("Warning: clipboard is not available on this platform.")
+
+
+def test_generator_main_chooses_to_copy():
+    with patch('builtins.input', return_value="y"), \
+         patch('passwordgenerator.generate_password', return_value="FakePass1!XXXXXX"), \
+         patch('passwordgenerator.pyperclip.copy') as mock_copy, \
+         patch('builtins.print'):
+        passwordgenerator.main()
+        mock_copy.assert_called_once_with("FakePass1!XXXXXX")
+
+
+def test_generator_main_chooses_not_to_copy():
+    with patch('builtins.input', return_value="n"), \
+         patch('passwordgenerator.pyperclip.copy') as mock_copy, \
+         patch('builtins.print'):
+        passwordgenerator.main()
+        mock_copy.assert_not_called()
+
+
+def test_generator_main_keyboard_interrupt():
+    with patch('builtins.input', side_effect=KeyboardInterrupt), \
+         patch('builtins.print') as mock_print:
+        passwordgenerator.main()
+        print_calls = [call.args[0] for call in mock_print.call_args_list]
+        assert "\nGoodbye." in print_calls
 
 
 def test_derive_key():
@@ -48,13 +89,46 @@ def test_vault_creation_and_opening(tmp_path):
 
 def test_vault_open_wrong_password(tmp_path):
     vault_file = tmp_path / "vault.json"
-    test_password = "correct_password"
-
     service = VaultService(CryptoService(), str(vault_file))
-    service.create_vault(test_password)
+    service.create_vault("correct_password")
 
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidTag):
         service.load_vault("wrong_password")
+
+
+def test_vault_load_missing_file(tmp_path):
+    vault_file = tmp_path / "nonexistent.json"
+    service = VaultService(CryptoService(), str(vault_file))
+
+    with pytest.raises(FileNotFoundError):
+        service.load_vault("any_password")
+
+
+def test_vault_load_corrupt_json(tmp_path):
+    vault_file = tmp_path / "vault.json"
+    vault_file.write_text("this is not valid json")
+    service = VaultService(CryptoService(), str(vault_file))
+
+    with pytest.raises(json.JSONDecodeError):
+        service.load_vault("any_password")
+
+
+def test_vault_load_missing_fields(tmp_path):
+    vault_file = tmp_path / "vault.json"
+    vault_file.write_text('{"foo": "bar"}')
+    service = VaultService(CryptoService(), str(vault_file))
+
+    with pytest.raises(KeyError):
+        service.load_vault("any_password")
+
+
+def test_vault_load_invalid_hex(tmp_path):
+    vault_file = tmp_path / "vault.json"
+    vault_file.write_text('{"salt": "ZZZZ", "nonce": "ZZZZ", "ciphertext": "ZZZZ"}')
+    service = VaultService(CryptoService(), str(vault_file))
+
+    with pytest.raises(ValueError):
+        service.load_vault("any_password")
 
 
 def test_add_entry():
@@ -92,3 +166,52 @@ def test_vault_round_trip(tmp_path):
     assert len(opened_vault.accounts) == 1
     assert opened_vault.accounts[0]["site"] == "github.com"
     assert opened_vault.accounts[0]["username"] == "myuser"
+
+
+# --- check_password_strength ---
+
+def test_password_strength_valid():
+    assert check_password_strength("ValidPass1!ValidP") is True
+
+
+def test_password_strength_exactly_16_chars():
+    assert check_password_strength("ValidPass1!VPass") is True
+
+
+def test_password_strength_too_short():
+    # 15 chars, otherwise meets all criteria
+    assert check_password_strength("ValidPass1!Val") is False
+
+
+def test_password_strength_empty():
+    assert check_password_strength("") is False
+
+
+def test_password_strength_no_uppercase():
+    assert check_password_strength("validpass1!validp") is False
+
+
+def test_password_strength_no_lowercase():
+    assert check_password_strength("VALIDPASS1!VALIDP") is False
+
+
+def test_password_strength_no_digit():
+    assert check_password_strength("ValidPass!!ValidP") is False
+
+
+def test_password_strength_no_special_char():
+    assert check_password_strength("ValidPass1ValidPa") is False
+
+
+def test_password_strength_unrecognised_special_char():
+    # ~ and ' are not in the allowed special character set
+    assert check_password_strength("ValidPass1~ValidP") is False
+    assert check_password_strength("ValidPass1'ValidP") is False
+
+
+def test_password_strength_each_allowed_special_char():
+    # Every character in the allowed set should satisfy the special-char requirement
+    allowed = "!@#$%^&*()-_=+[]{}|;:,.<>?/"
+    for ch in allowed:
+        password = f"ValidPass1{ch}VVVVV"
+        assert check_password_strength(password) is True, f"Failed for special char: {ch!r}"
