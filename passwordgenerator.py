@@ -1,6 +1,7 @@
 import secrets
 import string
 import pyperclip
+import rich 
 
 def generate_password(length: int = 16) -> str:
     """Generate a secure random password."""
@@ -19,16 +20,15 @@ def copy_to_clipboard(value: str) -> None:
 def main() -> None:
     try:
         password = generate_password()
-        print(password)
+        rich.print(f"[cyan]Generated password: {password}[/cyan]")
         choice = input("Copy password? (y/n): ").strip().lower()
 
         if choice in {"y", "yes"}:
             copy_to_clipboard(password)
-            print("Password copied to clipboard.")
+            rich.print("[green]Password copied to clipboard.[/green]")
 
     except KeyboardInterrupt:
-        print("\nGoodbye.")
-
+        rich.print("\n[green]Goodbye.[/green]")
 
 if __name__ == "__main__":
     main()

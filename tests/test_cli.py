@@ -37,7 +37,7 @@ def test_cli_view_entry():
     vault_service = _mock_vault_service()
 
     with patch('builtins.input', side_effect=["2", "0", "n", "5"]), \
-         patch('builtins.print') as mock_print:
+         patch('rich.print') as mock_print:
 
         cli.run_cli(vault, master_password, salt, vault_service)
 
@@ -62,7 +62,7 @@ def test_cli_delete_entry():
     vault_service = _mock_vault_service()
 
     with patch('builtins.input', side_effect=["3", "0", "5"]), \
-         patch('builtins.print') as mock_print:
+         patch('rich.print') as mock_print:
 
         cli.run_cli(vault, master_password, salt, vault_service)
 
@@ -83,7 +83,7 @@ def test_cli_invalid_choice():
     vault_service = _mock_vault_service()
 
     with patch('builtins.input', side_effect=["99", "5"]), \
-         patch('builtins.print') as mock_print:
+         patch('rich.print') as mock_print:
 
         cli.run_cli(vault, master_password, salt, vault_service)
 
@@ -100,7 +100,7 @@ def test_cli_keyboard_interrupt():
     vault_service = _mock_vault_service()
 
     with patch('builtins.input', side_effect=KeyboardInterrupt), \
-         patch('builtins.print') as mock_print:
+         patch('rich.print') as mock_print:
 
         cli.run_cli(vault, master_password, salt, vault_service)
 
@@ -119,7 +119,7 @@ def test_cli_view_entry_copies_to_clipboard():
 
     with patch('builtins.input', side_effect=["2", "0", "y", "5"]), \
          patch('cli.pyperclip.copy') as mock_copy, \
-         patch('builtins.print'):
+         patch('rich.print'):
         cli.run_cli(vault, master_password, salt, vault_service)
         mock_copy.assert_called_once_with("mypass123")
 
@@ -132,7 +132,7 @@ def test_cli_edit_entry():
 
     with patch('builtins.input', side_effect=["7", "0", "new.com", "newuser", "5"]), \
          patch('passwordmanager.get_password', return_value="NewPass1!NewPass"), \
-         patch('builtins.print'):
+         patch('rich.print'):
         cli.run_cli(vault, master_password, salt, vault_service)
 
     assert vault.accounts[0]["site"] == "new.com"
@@ -151,7 +151,7 @@ def test_cli_view_entry_clipboard_unavailable():
 
     with patch('builtins.input', side_effect=["2", "0", "y", "5"]), \
          patch('cli.pyperclip.copy', side_effect=cli.pyperclip.PyperclipException), \
-         patch('builtins.print') as mock_print:
+         patch('rich.print') as mock_print:
         cli.run_cli(vault, master_password, salt, vault_service)
         print_calls = [call.args[0] for call in mock_print.call_args_list]
         assert "Clipboard is unavailable on this platform." in print_calls

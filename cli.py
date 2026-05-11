@@ -1,6 +1,8 @@
 
 from getpass import getpass
+import rich 
 import pyperclip
+from rich.panel import Panel
 import passwordgenerator
 from passwordmanager import edit_entry, search_entries
 from vault import Vault, VaultService
@@ -9,14 +11,14 @@ from vault import Vault, VaultService
 def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: VaultService) -> None:
     try:
         while True:
-            print("\nOptions:")
-            print("1. Add password")
-            print("2. View entries")
-            print("3. Delete entry")
-            print("4. Generate password")
-            print("5. Exit")
-            print("6. Search entries")
-            print("7. Edit entry")
+            rich.print(Panel.fit("[bold green]Password Manager[/bold green]", title="Main Menu", border_style="green"))
+            rich.print("[yellow]1. Add entry[/yellow]")
+            rich.print("[yellow]2. View entries[/yellow]")
+            rich.print("[yellow]3. Delete entry[/yellow]")
+            rich.print("[yellow]4. Generate password[/yellow]")
+            rich.print("[yellow]5. Save and exit[/yellow]")
+            rich.print("[yellow]6. Search entries[/yellow]")
+            rich.print("[yellow]7. Edit entry[/yellow]")
 
             choice = input("> ").strip()
 
@@ -27,86 +29,86 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                 try:
                     vault.add_entry(site, username, password)
                     vault_service.save_vault(master_password, vault, salt)
-                    print("Entry added.")
-                    print("Vault saved.")
+                    rich.print("[green]Entry added.[/green]")
+                    rich.print("[green]Vault saved.[/green]")
                 except ValueError as e:
-                    print(e)
+                    rich.print(f"[red]{e}[/red]")
             elif choice == "2":
                 accounts = vault.list_entries()
                 if accounts:
-                    print("\nSaved entries:")
+                    rich.print("\n[bold]Saved entries:[/bold]")
                     for index, account in enumerate(accounts):
-                        print(f"{index}: {account['site']}")
+                        rich.print(f"[cyan]{index}: {account['site']}[/cyan]")
                 else:
-                    print("No entries found.")
+                    rich.print("[red]No entries found.[/red]")
 
                 if accounts:
                     try:
                         index = int(input("Enter index to view: "))
                         entry = vault.get_entry(index)
                         if entry:
-                            print("\n--- Entry ---")
-                            print(f"Site: {entry['site']}")
-                            print(f"Username: {entry['username']}")
-                            print(f"Password: {entry['password']}")
+                            rich.print("\n[bold]--- Entry ---[/bold]")
+                            rich.print(f"[cyan]Site: {entry['site']}[/cyan]")
+                            rich.print(f"[cyan]Username: {entry['username']}[/cyan]")
+                            rich.print(f"[cyan]Password: {entry['password']}[/cyan]")
 
                             copy_choice = input("Copy password to clipboard? (y/n): ").strip().lower()
                             if copy_choice in {"y", "yes"}:
                                 try:
                                     pyperclip.copy(entry["password"])
-                                    print("Password copied.")
+                                    rich.print("[green]Password copied.[/green]")
                                 except pyperclip.PyperclipException:
-                                    print("Clipboard is unavailable on this platform.")
+                                    rich.print("[red]Clipboard is unavailable on this platform.[/red]")
                         else:
-                            print("Invalid index.")
+                            rich.print("[red]Invalid index.[/red]")
                     except ValueError:
-                        print("Invalid input.")
+                        rich.print("[red]Invalid input.[/red]")
             elif choice == "3":
                 accounts = vault.list_entries()
                 if accounts:
-                    print("\nSaved entries:")
+                    rich.print("\n[bold]Saved entries:[/bold]")
                     for index, account in enumerate(accounts):
-                        print(f"{index}: {account['site']}")
+                        rich.print(f"[cyan]{index}: {account['site']}[/cyan]")
                 else:
-                    print("No entries found.")
+                    rich.print("[red]No entries found.[/red]")
 
                 if accounts:
                     try:
                         index = int(input("Enter index to delete: "))
                         removed = vault.delete_entry(index)
                         vault_service.save_vault(master_password, vault, salt)
-                        print(f"Removed entry for {removed['site']}")
-                        print("Vault saved.")
+                        rich.print(f"[green]Removed entry for {removed['site']}[/green]")
+                        rich.print("[green]Vault saved.[/green]")
                     except (ValueError, IndexError) as e:
-                        print(e)
+                        rich.print(f"[red]{e}[/red]")
             elif choice == "4":
                 passwordgenerator.main()
             elif choice == "5":
                 vault_service.save_vault(master_password, vault, salt)
-                print("Vault saved. Goodbye.")
+                rich.print("[green]Vault saved. Goodbye.[/green]")
                 break
             elif choice == "6":
                 query = input("Enter search query: ").strip()
                 results = search_entries(vault, query)
                 if results:
-                    print("\nSearch results:")
+                    rich.print("\n[bold]Search results:[/bold]")
                     for index, entry in results:
-                        print(f"{index}: {entry['site']} ({entry['username']})")
+                        rich.print(f"[cyan]{index}: {entry['site']} ({entry['username']})[/cyan]")
                 else:
-                    print("No matching entries found.")
+                    rich.print("[red]No matching entries found.[/red]")
             elif choice == "7":
                 try:
                     accounts = vault.list_entries()
                     if accounts:
-                        print("\nSaved entries:")
+                        rich.print("\n[bold]Saved entries:[/bold]")
                         for index, account in enumerate(accounts):
-                            print(f"{index}: {account['site']}")
+                            rich.print(f"[cyan]{index}: {account['site']}[/cyan]")
                     index = int(input("Enter index to edit: "))
                     edit_entry(vault, index, master_password, salt, vault_service)
                 except (ValueError, IndexError):
-                    print("Invalid index.")
+                    rich.print("[red]Invalid index.[/red]")
             else:
-                print("Invalid option. Please choose a number from 1 to 5.")
+                rich.print("[red]Invalid option. Please choose a number from 1 to 7.[/red]")
     except KeyboardInterrupt:
         vault_service.save_vault(master_password, vault, salt)
-        print("\nVault saved. Goodbye.")
+        rich.print("\n[green]Vault saved. Goodbye.[/green]")
