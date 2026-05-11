@@ -7,7 +7,36 @@ from vault import CryptoService, VaultService
 
 
 VAULT_FILE = "vault.json"
+def edit_entry(vault, index, master_password, salt, vault_service):
+        try:
+            entry = vault.get_entry(index)
+            if not entry:
+                print("Invalid index.")
+                return
+            print("\n--- Edit Entry ---")
+            print(f"Current site: {entry['site']}")
+            new_site = input("New site (leave blank to keep current): ").strip()
+            print(f"Current username: {entry['username']}")
+            new_username = input("New username (leave blank to keep current): ").strip()
+            new_password = get_password("New password (leave blank to keep current): ", validate_strength=True)
+            if new_site:
+                entry['site'] = new_site
+            if new_username:
+                entry['username'] = new_username
+            if new_password:
+                entry['password'] = new_password
+            vault_service.save_vault(master_password, vault, salt)
+            print("Vault saved.")
 
+        except KeyboardInterrupt:
+            print("\nGoodbye.")
+def search_entries(vault, query):
+    """Search for entries matching the query."""
+    results = []
+    for index, entry in enumerate(vault.list_entries()):
+        if query.lower() in entry["site"].lower() or query.lower() in entry["username"].lower():
+            results.append((index, entry))
+    return results
 
 def check_password_strength(password: str) -> bool:
     """Basic password strength check."""

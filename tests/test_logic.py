@@ -1,11 +1,11 @@
 import json
 import os
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from cryptography.exceptions import InvalidTag
 
 from vault import CryptoService, Vault, VaultService
-from passwordmanager import check_password_strength
+from passwordmanager import check_password_strength, edit_entry
 import passwordgenerator
 
 
@@ -215,3 +215,60 @@ def test_password_strength_each_allowed_special_char():
     for ch in allowed:
         password = f"ValidPass1{ch}VVVVV"
         assert check_password_strength(password) is True, f"Failed for special char: {ch!r}"
+
+
+# --- edit_entry ---
+
+def test_edit_entry_updates_all_fields():
+    vault = Vault([{"site": "old.com", "username": "olduser", "password": "OldPass1!OldPass"}])
+    vault_service = MagicMock()
+
+    with patch('builtins.input', side_effect=["new.com", "newuser"]), \
+         patch('passwordmanager.get_password', return_value="NewPass1!NewPass"), \
+         patch('builtins.print'):
+        edit_entry(vault, 0, "master", b"salt", vault_service)
+
+    assert vault.accounts[0]["site"] == "new.com"
+    assert vault.accounts[0]["username"] == "newuser"
+    assert vault.accounts[0]["password"] == "NewPass1!NewPass"
+    vault_service.save_vault.assert_called_once_with("master", vault, b"salt")
+
+
+def test_edit_entry_keeps_current_values_when_blank():
+    vault = Vault([{"site": "old.com", "username": "olduser", "password": "OldPass1!OldPass"}])
+    vault_service = MagicMock()
+
+    with patch('builtins.input', side_effect=["", ""]), \
+         patch('passwordmanager.get_password', return_value=""), \
+         patch('builtins.print'):
+        edit_entry(vault, 0, "master", b"salt", vault_service)
+
+    assert vault.accounts[0]["site"] == "old.com"
+    assert vault.accounts[0]["username"] == "olduser"
+    assert vault.accounts[0]["password"] == "OldPass1!OldPass"
+    vault_service.save_vault.assert_called_once()
+
+
+def test_edit_entry_invalid_index():
+    vault = Vault([{"site": "old.com", "username": "olduser", "password": "OldPass1!OldPass"}])
+    vault_service = MagicMock()
+
+    with patch('builtins.print') as mock_print:
+        edit_entry(vault, 99, "master", b"salt", vault_service)
+
+    print_calls = [call.args[0] for call in mock_print.call_args_list]
+    assert "Invalid index." in print_calls
+    vault_service.save_vault.assert_not_called()
+
+
+def test_edit_entry_keyboard_interrupt():
+    vault = Vault([{"site": "old.com", "username": "olduser", "password": "OldPass1!OldPass"}])
+    vault_service = MagicMock()
+
+    with patch('builtins.input', side_effect=KeyboardInterrupt), \
+         patch('builtins.print') as mock_print:
+        edit_entry(vault, 0, "master", b"salt", vault_service)
+
+    print_calls = [call.args[0] for call in mock_print.call_args_list]
+    assert "\nGoodbye." in print_calls
+    vault_service.save_vault.assert_not_called()

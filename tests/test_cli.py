@@ -124,6 +124,23 @@ def test_cli_view_entry_copies_to_clipboard():
         mock_copy.assert_called_once_with("mypass123")
 
 
+def test_cli_edit_entry():
+    vault = Vault([{"site": "old.com", "username": "olduser", "password": "OldPass1!OldPass"}])
+    master_password = "test_password"
+    salt = b"test_salt_16_bytes"
+    vault_service = _mock_vault_service()
+
+    with patch('builtins.input', side_effect=["7", "0", "new.com", "newuser", "5"]), \
+         patch('passwordmanager.get_password', return_value="NewPass1!NewPass"), \
+         patch('builtins.print'):
+        cli.run_cli(vault, master_password, salt, vault_service)
+
+    assert vault.accounts[0]["site"] == "new.com"
+    assert vault.accounts[0]["username"] == "newuser"
+    assert vault.accounts[0]["password"] == "NewPass1!NewPass"
+    assert vault_service.save_vault.call_count == 2
+
+
 def test_cli_view_entry_clipboard_unavailable():
     vault = Vault([
         {"site": "github.com", "username": "testuser", "password": "mypass123"}

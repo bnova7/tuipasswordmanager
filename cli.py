@@ -2,6 +2,7 @@
 from getpass import getpass
 import pyperclip
 import passwordgenerator
+from passwordmanager import edit_entry, search_entries
 from vault import Vault, VaultService
 
 
@@ -14,6 +15,8 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
             print("3. Delete entry")
             print("4. Generate password")
             print("5. Exit")
+            print("6. Search entries")
+            print("7. Edit entry")
 
             choice = input("> ").strip()
 
@@ -25,6 +28,7 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                     vault.add_entry(site, username, password)
                     vault_service.save_vault(master_password, vault, salt)
                     print("Entry added.")
+                    print("Vault saved.")
                 except ValueError as e:
                     print(e)
             elif choice == "2":
@@ -72,6 +76,7 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                         removed = vault.delete_entry(index)
                         vault_service.save_vault(master_password, vault, salt)
                         print(f"Removed entry for {removed['site']}")
+                        print("Vault saved.")
                     except (ValueError, IndexError) as e:
                         print(e)
             elif choice == "4":
@@ -80,6 +85,26 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                 vault_service.save_vault(master_password, vault, salt)
                 print("Vault saved. Goodbye.")
                 break
+            elif choice == "6":
+                query = input("Enter search query: ").strip()
+                results = search_entries(vault, query)
+                if results:
+                    print("\nSearch results:")
+                    for index, entry in results:
+                        print(f"{index}: {entry['site']} ({entry['username']})")
+                else:
+                    print("No matching entries found.")
+            elif choice == "7":
+                try:
+                    accounts = vault.list_entries()
+                    if accounts:
+                        print("\nSaved entries:")
+                        for index, account in enumerate(accounts):
+                            print(f"{index}: {account['site']}")
+                    index = int(input("Enter index to edit: "))
+                    edit_entry(vault, index, master_password, salt, vault_service)
+                except (ValueError, IndexError):
+                    print("Invalid index.")
             else:
                 print("Invalid option. Please choose a number from 1 to 5.")
     except KeyboardInterrupt:
