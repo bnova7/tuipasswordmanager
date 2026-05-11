@@ -87,7 +87,12 @@ def get_master_password_confirm() -> str:
 
 
 def get_master_password() -> str:
-    return get_password("Enter master password: ")
+    try:
+        return getpass.getpass("Enter master password: ")
+    except KeyboardInterrupt:
+        print("\nGoodbye.")
+        exit(0)
+
 
 
 def run_manager() -> None:
@@ -99,19 +104,33 @@ def run_manager() -> None:
         vault, salt = vault_service.create_vault(master_password)
         print("Vault created successfully.")
     else:
-        master_password = get_master_password()
-
-        try:
-            vault, salt = vault_service.load_vault(master_password)
-            print("Vault unlocked.")
-        except FileNotFoundError:
-            print("Vault file not found. Please check that vault.json exists.")
-            return
-        except InvalidTag:
-            print("Wrong password. Please try again.")
-            return
-        except (json.JSONDecodeError, KeyError, ValueError):
-            print("Vault file is corrupted and cannot be read.")
+        for attempt in range(3):
+            master_password = get_master_password()
+            remaining = 2 - attempt
+            if not master_password:
+                if remaining > 0:
+                    print(f"Password cannot be empty. {remaining} attempt(s) remaining.")
+                else:
+                    print("Too many failed attempts. Exiting.")
+                    exit(1)
+                continue
+            try:
+                vault, salt = vault_service.load_vault(master_password)
+                print("Vault unlocked.")
+                break
+            except FileNotFoundError:
+                print("Vault file not found. Please check that vault.json exists.")
+                return
+            except InvalidTag:
+                if remaining > 0:
+                    print(f"Wrong password. {remaining} attempt(s) remaining.")
+                else:
+                    print("Too many failed attempts. Exiting.")
+                    exit(1)
+            except (json.JSONDecodeError, KeyError, ValueError):
+                print("Vault file is corrupted and cannot be read.")
+                return
+        else:
             return
 
     import cli
