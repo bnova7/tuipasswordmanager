@@ -1,6 +1,8 @@
 import argparse
 import getpass
 import json
+
+import rich
 import passwordgenerator
 from cryptography.exceptions import InvalidTag
 from vault import CryptoService, VaultService
@@ -13,10 +15,10 @@ def edit_entry(vault, index, master_password, salt, vault_service):
             if not entry:
                 print("Invalid index.")
                 return
-            print("\n--- Edit Entry ---")
-            print(f"Current site: {entry['site']}")
+            rich.print("[green]\n--- Edit Entry ---[/green]")
+            rich.print(f"[green]Current site: {entry['site']}[/green]")
             new_site = input("New site (leave blank to keep current): ").strip()
-            print(f"Current username: {entry['username']}")
+            rich.print(f"[green]Current username: {entry['username']}[/green]")
             new_username = input("New username (leave blank to keep current): ").strip()
             new_password = get_password("New password (leave blank to keep current): ", validate_strength=True)
             if new_site:
@@ -26,10 +28,12 @@ def edit_entry(vault, index, master_password, salt, vault_service):
             if new_password:
                 entry['password'] = new_password
             vault_service.save_vault(master_password, vault, salt)
-            print("Vault saved.")
+            rich.print("[green]Vault saved.[/green]")
 
         except KeyboardInterrupt:
-            print("\nGoodbye.")
+            rich.print("\n[green]Goodbye.[/green]")
+
+
 def search_entries(vault, query):
     """Search for entries matching the query."""
     results = []
@@ -58,6 +62,8 @@ def get_password(prompt: str, validate_strength: bool = False) -> str:
     try:
         password = getpass.getpass(prompt)
         if not password:
+            if password == "":
+                return
             print("Password cannot be empty. Please try again.")
             return get_password(prompt, validate_strength)
 
@@ -67,7 +73,7 @@ def get_password(prompt: str, validate_strength: bool = False) -> str:
 
         return password
     except KeyboardInterrupt:
-        print("\nGoodbye.")
+        rich.print("\n[green]Goodbye.[/green]")
         exit(0)
 
 
@@ -82,7 +88,7 @@ def get_master_password_confirm() -> str:
 
         return password
     except KeyboardInterrupt:
-        print("\nGoodbye.")
+        rich.print("\n[green]Goodbye.[/green]")
         exit(0)
 
 
@@ -90,7 +96,7 @@ def get_master_password() -> str:
     try:
         return getpass.getpass("Enter master password: ")
     except KeyboardInterrupt:
-        print("\nGoodbye.")
+        rich.print("\n[green]Goodbye.[/green]")
         exit(0)
 
 
