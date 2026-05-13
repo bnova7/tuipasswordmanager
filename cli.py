@@ -2,11 +2,50 @@
 from getpass import getpass
 import rich 
 import pyperclip
+import threading 
 from rich.panel import Panel
 import passwordgenerator
-from passwordmanager import edit_entry, search_entries
 from vault import Vault, VaultService
 
+#copies text starts a timer to clear the clipboard
+def copy_with_autoclean(text, timeout=30):
+    pyperclip.copy(text)
+    timer = threading.Timer(timeout, pyperclip.copy, args=[""])
+    timer.start()
+    return timer
+
+def search_entries(vault, query):
+    """Search for entries matching the query."""
+    results = []
+    for index, entry in enumerate(vault.list_entries()):
+        if query.lower() in entry["site"].lower() or query.lower() in entry["username"].lower():
+            results.append((index, entry))
+    return results
+
+def edit_entry(vault, index, master_password, salt, vault_service):
+        try:
+            entry = vault.get_entry(index)
+            if not entry:
+                print("Invalid index.")
+                return
+            rich.print("[green]\n--- Edit Entry ---[/green]")
+            rich.print(f"[green]Current site: {entry['site']}[/green]")
+            new_site = input("New site (leave blank to keep current): ").strip()
+            rich.print(f"[green]Current username: {entry['username']}[/green]")
+            new_username = input("New username (leave blank to keep current): ").strip()
+            new_password = get_password("New password (leave blank to keep current): ", validate_strength=True)
+            if new_site:
+                entry['site'] = new_site
+            if new_username:
+                entry['username'] = new_username
+            if new_password:
+                entry['password'] = new_password
+            vault_service.save_vault(master_password, vault, salt)
+            rich.print("[green]Vault saved.[/green]")
+
+        except KeyboardInterrupt:
+            rich.print("\n[green]Goodbye.[/green]")
+            exit(0)
 
 def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: VaultService) -> None:
     try:
@@ -55,8 +94,8 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                             copy_choice = input("Copy password to clipboard? (y/n): ").strip().lower()
                             if copy_choice in {"y", "yes"}:
                                 try:
-                                    pyperclip.copy(entry["password"])
-                                    rich.print("[green]Password copied.[/green]")
+                                    copy_with_autoclean(entry["password"], timeout=30)
+                                    rich.print("[green]Password copied. Clipboard will be cleared in 30 seconds.[/green]")
                                 except pyperclip.PyperclipException:
                                     rich.print("[red]Clipboard is unavailable on this platform.[/red]")
                         else:
