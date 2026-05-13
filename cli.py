@@ -7,6 +7,19 @@ from rich.panel import Panel
 import passwordgenerator
 from vault import Vault, VaultService
 
+
+
+def print_entries(vault: Vault ) -> list:
+                accounts = vault.list_entries()
+                if accounts:
+                    rich.print("\n[bold]Saved entries:[/bold]")
+                    for index, account in enumerate(accounts):
+                        rich.print(f"[cyan]{index}: {account['site']}[/cyan]")
+                else:
+                    rich.print("[red]No entries found.[/red]")
+
+                return accounts 
+                
 #copies text starts a timer to clear the clipboard
 def copy_with_autoclean(text, timeout=30):
     pyperclip.copy(text)
@@ -33,7 +46,7 @@ def edit_entry(vault, index, master_password, salt, vault_service):
             new_site = input("New site (leave blank to keep current): ").strip()
             rich.print(f"[green]Current username: {entry['username']}[/green]")
             new_username = input("New username (leave blank to keep current): ").strip()
-            new_password = get_password("New password (leave blank to keep current): ", validate_strength=True)
+            new_password = getpass("New password (leave blank to keep current): ")
             if new_site:
                 entry['site'] = new_site
             if new_username:
@@ -73,14 +86,7 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                 except ValueError as e:
                     rich.print(f"[red]{e}[/red]")
             elif choice == "2":
-                accounts = vault.list_entries()
-                if accounts:
-                    rich.print("\n[bold]Saved entries:[/bold]")
-                    for index, account in enumerate(accounts):
-                        rich.print(f"[cyan]{index}: {account['site']}[/cyan]")
-                else:
-                    rich.print("[red]No entries found.[/red]")
-
+                accounts = print_entries(vault)
                 if accounts:
                     try:
                         index = int(input("Enter index to view: "))
@@ -103,14 +109,7 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                     except ValueError:
                         rich.print("[red]Invalid input.[/red]")
             elif choice == "3":
-                accounts = vault.list_entries()
-                if accounts:
-                    rich.print("\n[bold]Saved entries:[/bold]")
-                    for index, account in enumerate(accounts):
-                        rich.print(f"[cyan]{index}: {account['site']}[/cyan]")
-                else:
-                    rich.print("[red]No entries found.[/red]")
-
+                accounts = print_entries(vault)
                 if accounts:
                     try:
                         index = int(input("Enter index to delete: "))
@@ -137,11 +136,7 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                     rich.print("[red]No matching entries found.[/red]")
             elif choice == "7":
                 try:
-                    accounts = vault.list_entries()
-                    if accounts:
-                        rich.print("\n[bold]Saved entries:[/bold]")
-                        for index, account in enumerate(accounts):
-                            rich.print(f"[cyan]{index}: {account['site']}[/cyan]")
+                    accounts = print_entries(vault)
                     index = int(input("Enter index to edit: "))
                     edit_entry(vault, index, master_password, salt, vault_service)
                 except (ValueError, IndexError):
