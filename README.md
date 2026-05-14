@@ -88,9 +88,25 @@ The vault is stored in `vault.json` as a JSON object with three fields:
 }
 ```
 
-- The **salt** (16 bytes, random per vault creation) is passed to PBKDF2-HMAC-SHA256 with 200,000 iterations to derive a 256-bit AES key from the master password.
-- The **nonce** (12 bytes, random per save) and **ciphertext** are produced by AES-GCM encryption of the JSON vault contents.
-- The plaintext is never written to disk. An incorrect password or any modification to the ciphertext will cause decryption to fail with an authentication error.
+- The **salt** (16 bytes, randomly generated at vault creation) is fed into PBKDF2-HMAC-SHA256 with 200,000 iterations to derive a 256-bit AES key from the master password. The salt never changes after creation.
+- The **nonce** (12 bytes) is randomly regenerated on every save, so each write produces a unique ciphertext even if the vault contents are unchanged.
+- The **ciphertext** is the AES-GCM encryption of the plaintext vault contents. AES-GCM appends a 16-byte authentication tag to the ciphertext — any modification to the ciphertext, nonce, or salt will cause decryption to fail with an authentication error.
+- The master password never touches disk. It is used transiently in memory to derive the AES key and is not stored anywhere in the vault file.
+
+The plaintext inside the vault is a JSON object with this structure:
+
+```json
+{
+  "accounts": [
+    {"site": "example.com", "username": "user@example.com", "password": "..."}
+  ]
+}
+```
+
+**Security assumptions:**
+- The master password is the only secret. Anyone with the `vault.json` file cannot decrypt it without the master password.
+- A wrong password or any byte-level tampering with the vault file will raise a decryption error — there is no silent data corruption.
+- The derived AES key exists only in memory for the duration of the session and is never persisted.
 
 > **Do not commit `vault.json` to source control.** It contains your encrypted passwords. The file is already listed in `.gitignore`, but if you ever move or rename it, make sure the new path is ignored too:
 > ```
