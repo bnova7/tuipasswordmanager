@@ -8,7 +8,7 @@ from cryptography.exceptions import InvalidTag
 from vault import CryptoService, VaultService
 
 
-VAULT_FILE = "vault.json"
+VAULT_FILE = "~/.local/share/tuipasswordmanager/vault.json"
 
 def check_password_strength(password: str) -> bool:
     """Basic password strength check."""
