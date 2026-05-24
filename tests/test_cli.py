@@ -88,7 +88,7 @@ def test_cli_invalid_choice():
         cli.run_cli(vault, master_password, salt, vault_service)
 
         print_calls = [call.args[0] for call in mock_print.call_args_list]
-        assert "Invalid option. Please choose a number from 1 to 5." in print_calls
+        assert "Invalid option. Please choose a number from 1 to 7." in print_calls
 
         vault_service.save_vault.assert_called_once()
 
