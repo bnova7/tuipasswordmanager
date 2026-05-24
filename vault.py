@@ -51,9 +51,6 @@ class Vault:
         return entry
 
     def get_entry(self, index: int) -> dict | None:
-        for account in self.accounts:
-            if account["site"] == index:
-                print(account)
         if 0 <= index < len(self.accounts):
             return self.accounts[index]
         return None
