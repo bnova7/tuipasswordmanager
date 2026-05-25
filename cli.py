@@ -103,7 +103,7 @@ def run_cli(vault: Vault, master_password: str, salt: bytes, vault_service: Vaul
                                     copy_with_autoclean(entry["password"], timeout=30)
                                     rich.print("[green]Password copied. Clipboard will be cleared in 30 seconds.[/green]")
                                 except pyperclip.PyperclipException:
-                                    rich.print("[red]Clipboard is unavailable on this platform.[/red]")
+                                    rich.print("[red]Clipboard is unavailable on this platform. On linux, install xclip, xsel, or wl-clipboard.[/red]")
                         else:
                             rich.print("[red]Invalid index.[/red]")
                     except ValueError:

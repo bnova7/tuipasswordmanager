@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 
 
-VAULT_FILE = "vault.json"
+VAULT_FILE = os.path.expanduser("~/.local/share/tuipasswordmanager/vault.json")
 SALT_SIZE = 16
 NONCE_SIZE = 12
 KDF_ITERATIONS = 200_000
@@ -51,9 +51,6 @@ class Vault:
         return entry
 
     def get_entry(self, index: int) -> dict | None:
-        for account in self.accounts:
-            if account["site"] == index:
-                print(account)
         if 0 <= index < len(self.accounts):
             return self.accounts[index]
         return None
@@ -91,6 +88,8 @@ class VaultService:
             "nonce": nonce.hex(),
             "ciphertext": ciphertext.hex(),
         }
+
+        os.makedirs(os.path.dirname(self.vault_file), exist_ok=True)
 
         with open(self.vault_file, "w", encoding="utf-8") as f:
             json.dump(vault_data, f)
