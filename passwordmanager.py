@@ -1,7 +1,7 @@
 import argparse
 import getpass
 import json
-
+import cli
 import rich
 import passwordgenerator
 from cryptography.exceptions import InvalidTag
@@ -107,7 +107,7 @@ def run_manager() -> None:
         else:
             return
 
-    import cli
+    
     cli.run_cli(vault, master_password, salt, vault_service)
 
 
